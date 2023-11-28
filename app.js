@@ -42,10 +42,10 @@ Task - Create, Update, ReadTaskById, ReadAllTask
 
 app.get('/tasklists', (req, res) => {
     TaskList.find({})
-        .then( lists => {
+        .then(lists => {
             res.status(200).send(lists);
         })
-        .catch(error  => {
+        .catch(error => {
             console.log(error);
             res.status(500)
         });
@@ -54,14 +54,13 @@ app.get('/tasklists', (req, res) => {
 // Route or endpoints for creating a taskList:
 
 app.post('/tasklists', (req, res) => {
-
     console.log(req.body);
     let taskListObj = { 'title': req.body.title };
     TaskList(taskListObj).save()
-        .then( lists => {
+        .then(lists => {
             res.status(201).send(lists);
         })
-        .catch( error => {
+        .catch(error => {
             console.log(error);
             res.status(500)
         });
@@ -73,7 +72,7 @@ app.get(
     '/tasklists/:tasklistId', (req, res) => {
         let tasklistId = req.params.tasklistId;
         TaskList.find({ _id: tasklistId })
-            .then( taskList => {
+            .then(taskList => {
                 res.status(200).send(taskList)
             })
             .catch((error) => {
@@ -86,12 +85,12 @@ app.get(
 
 // Put is full update of object
 app.put('/tasklists/:taslistId', (req, res) => {
-    TaskList.findOneAndUpdate({ _id: req.params.taslistId }, { $set: req.body})
-        .then( taskList => {
+    TaskList.findOneAndUpdate({ _id: req.params.taslistId }, { $set: req.body })
+        .then(taskList => {
             // taskList = TaskList.findOne({ _id: req.params.taslistId });
             res.status(200).send(taskList)
         })
-        .catch( error => {
+        .catch(error => {
             console.log(error);
             res.status(500)
         });
@@ -100,11 +99,11 @@ app.put('/tasklists/:taslistId', (req, res) => {
 // Patch is partial update of one field of an object
 app.patch('/tasklists/:taslistId', (req, res) => {
     TaskList.findOneAndUpdate({ _id: req.params.taslistId }, { $set: req.body })
-        .then( taskList => {
+        .then(taskList => {
             // taskList = TaskList.findOne({ _id: req.params.taslistId });
             res.status(200).send(taskList)
         })
-        .catch( error  => {
+        .catch(error => {
             console.log(error);
             res.status(500)
         });
@@ -113,14 +112,81 @@ app.patch('/tasklists/:taslistId', (req, res) => {
 // Delete a taskList by id:
 app.delete('/tasklists/:taslistId', (req, res) => {
     TaskList.findByIdAndDelete(req.params.taslistId)
-        .then( taskList => {
+        .then(taskList => {
             res.status(200).send(taskList)
         })
-        .catch( error  => {
+        .catch(error => {
             console.log(error);
             res.status(500)
         });
 });
+
+/* CRUD operattion for task, a task should always belong to a taskList */
+// Get all tasks for one tasklist, http://localhost:3000/tasklist/:tasklistId/tasks/:taskId
+app.get(('/tasklists/:tasklistId/tasks'), (req, res) => {
+    Task.find({ _taskListId: req.params.tasklistId })
+        .then(tasks => {
+            res.status(200).send(tasks)
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500)
+        });
+});
+
+// create a task inside a particular tasklist:
+app.post('/tasklists/:tasklistId/tasks', (req, res) => {
+    let taskObj = { 'title': req.body.title, '_taskListId': req.params.tasklistId };
+    Task(taskObj).save()
+        .then(task => {
+            res.status(201).send(task);
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500)
+        });
+});
+
+// Get one task inside one taskList:
+app.get(('/tasklists/:tasklistId/tasks/:taskId'), (req, res) => {
+    Task.findOne({ _taskListId: req.params.tasklistId, _id: req.params.taskId })
+        .then(task => {
+            res.status(200).send(task)
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500)
+        });
+});
+
+// Update one task belonging to one taskList:
+app.patch('/tasklists/:tasklistId/tasks/:taskId', (req, res) => {
+    Task.findOneAndUpdate({ _taskListId: req.params.tasklistId, _id: req.params.taskId }, { $set: req.body })
+        .then(task => {
+            res.status(200).send(task)
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500)
+        });
+});
+
+
+// Delete One task belonging in taskList:
+app.delete('/tasklists/:tasklistId/tasks/:taskId', (req, res) => {
+    Task.findOneAndDelete({ _taskListId: req.params.tasklistId, _id: req.params.taskId })
+        .then(task => {
+            res.status(200).send(task)
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500)
+        });
+});
+
+
+// http://localhost:3000/tasklist/:tasklistId/tasks/:taskId
+
 app.listen(3000, () => {
     console.log("Server started on port 3000");
 });
