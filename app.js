@@ -84,8 +84,8 @@ app.get(
 );
 
 // Put is full update of object
-app.put('/tasklists/:taslistId', (req, res) => {
-    TaskList.findOneAndUpdate({ _id: req.params.taslistId }, { $set: req.body })
+app.put('/tasklists/:tasklistId', (req, res) => {
+    TaskList.findOneAndUpdate({ _id: req.params.tasklistId }, { $set: req.body })
         .then(taskList => {
             // taskList = TaskList.findOne({ _id: req.params.taslistId });
             res.status(200).send(taskList)
@@ -97,8 +97,8 @@ app.put('/tasklists/:taslistId', (req, res) => {
 });
 
 // Patch is partial update of one field of an object
-app.patch('/tasklists/:taslistId', (req, res) => {
-    TaskList.findOneAndUpdate({ _id: req.params.taslistId }, { $set: req.body })
+app.patch('/tasklists/:tasklistId', (req, res) => {
+    TaskList.findOneAndUpdate({ _id: req.params.tasklistId }, { $set: req.body })
         .then(taskList => {
             // taskList = TaskList.findOne({ _id: req.params.taslistId });
             res.status(200).send(taskList)
@@ -110,15 +110,27 @@ app.patch('/tasklists/:taslistId', (req, res) => {
 });
 
 // Delete a taskList by id:
-app.delete('/tasklists/:taslistId', (req, res) => {
-    TaskList.findByIdAndDelete(req.params.taslistId)
-        .then(taskList => {
-            res.status(200).send(taskList)
+app.delete('/tasklists/:tasklistId', (req, res) => {
+    // delete all tasks within the tasklist
+    const deleteAllContainingTask = (taskList) => {
+        Task.deleteMany({_taskListId: req.params.tasklistId})
+        .then(() => {
+            return taskList;
         })
         .catch(error => {
             console.log(error);
             res.status(500)
         });
+    };
+    const responseTaskList = TaskList.findByIdAndDelete(req.params.tasklistId)
+        .then(taskList => {
+            deleteAllContainingTask(taskList);
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500)
+        });
+        res.status(200).send(responseTaskList);
 });
 
 /* CRUD operattion for task, a task should always belong to a taskList */
@@ -183,6 +195,8 @@ app.delete('/tasklists/:tasklistId/tasks/:taskId', (req, res) => {
             res.status(500)
         });
 });
+
+
 
 
 // http://localhost:3000/tasklist/:tasklistId/tasks/:taskId
